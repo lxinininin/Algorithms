@@ -2,7 +2,7 @@
 
 
 
-![Merge](assets/Merge.png)
+<img src="assets/Merge.png" alt="Merge" style="zoom:50%;" />  
 
 
 
