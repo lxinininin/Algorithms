@@ -2,7 +2,7 @@
 
 
 
-<img src="/Users/linxin/Downloads/Merge.png" alt="Merge" style="zoom:50%;" />
+![Merge](assets/Merge.png)
 
 
 
