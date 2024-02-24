@@ -83,3 +83,83 @@ class Solution {
 }
 ```
 
+**复杂度分析**
+
+时间复杂度: `O(log n)`, 其中 `n` 为 `nums` 数组的大小. 整个算法时间复杂度即为二分查找的时间复杂度 `O(log n)` 
+
+空间复杂度: `O(1)` . 我们只需要常数级别的空间存放变量.
+
+
+
+# 81. Search in Rotated Sorted Array II
+
+相同题意, 整数数组 `nums` 按升序排列，数组中的值 **不必互不相同**
+
+**示例 1：**
+
+```
+输入：nums = [2,5,6,0,0,1,2], target = 0
+输出：true
+```
+
+**示例 2：**
+
+```
+输入：nums = [2,5,6,0,0,1,2], target = 3
+输出：false
+```
+
+ 
+
+**提示：**
+
+-   `1 <= nums.length <= 5000`
+-   `-104 <= nums[i] <= 104`
+-   题目数据保证 `nums` 在预先未知的某个下标上进行了旋转
+-   `-104 <= target <= 104`
+
+
+
+```java
+class Solution {
+  public boolean search(int[] nums, int target) {
+    int n = nums.length;
+    if (n == 0) return false;
+    if (n == 1) return nums[0] == target;
+
+    int l = 0, r = n - 1;
+    while (l <= r) {
+      int mid = (l + r) / 2;
+
+      if (nums[mid] == target) {
+        return true;
+      }
+			
+      // 对于数组中有重复元素的情况, BinarySearch 可能会有 nums[l] = nums[mid] = nums[r], 此时无法判断区间 [l, mid] 和区间 [mid + 1, r] 哪个是有序的
+      // ex: nums=[3,1,2,3,3,3,3], target=2, 首次 BinarySearch 时无法判断区间 [0,3] 和区间 [4,6] 哪个是有序的
+      // 对于这种情况, 我们只能将当前二分区间的左边界加一, 右边界减一, 然后在新区间上继续二分查找
+      if (nums[l] == nums[mid] && nums[mid] == nums[r]) {
+        l++; r--;
+      }
+      else if (nums[l] <= nums[mid]) {
+        if (nums[l] <= target && target < nums[mid]) {
+          r = mid - 1;
+        } else {
+          l = mid + 1;
+        }
+      } 
+      else {
+        if (nums[mid] < target && target <= nums[r]) {
+          l = mid + 1;
+        } else {
+          r = mid - 1;
+        }
+      }
+    }
+
+    return false;
+  }
+}
+```
+
+ 
