@@ -75,7 +75,7 @@ class Solution {
     while (i >= 0) {
       char ch = s.charAt(i);
 
-      // 如果解码字符串 str = appleappleappleappleappleapple, k = 24 和 k = 4 答案相同
+      // 如果解码字符串 str = appleappleappleappleappleapple, k = 24 和 k = 4 答案相同, 此时 size = 30
       // 此情况编码字符串 s = apple6, 当 i 读到 6 时, size 会从 30 直接减小到 5
       // 这个时候 k %= size 就能发挥作用, 其余时候 size > k, k %= size, k 依旧等于 k
       // 然后顺着缩减后的 k 就能定位到结果并将其返回
@@ -88,6 +88,7 @@ class Solution {
       if (ch >= 'a' && ch <= 'z') {
         size--;
       } else {
+        // 去掉重复单词
         size /= ch - '0';
       }
 
