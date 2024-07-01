@@ -1,7 +1,8 @@
 ```java
 // both of them can use push() and pop()
 Deque<Character> stack1 = new LinkedList<>();
-Stack<Character> stack2 = new Stack<>();
+Deque<Integer> stack1.5 = new ArrayDeque<>(); // this is fastest
+Stack<Character> stack2 = new Stack<>(); // it is better to not use this, to slow!!!
 
 // but the first one can use other methods to improve flexibility
 stack1.pollFirst(); // same as pop()
