@@ -163,3 +163,80 @@ public class Main {
 }
 ```
 
+## 二叉树
+
+字符串转换为二叉树
+
+输入: 通常是层序输入的序列
+
+```java
+[4,1,6,0,2,5,7,null,null,null,3,null,null,null,8]
+```
+
+<img src="assets/image-20240817230349616.png" alt="image-20240817230349616" style="zoom: 50%; margin-left: 0" />
+
+通过数据预处理进行构造, 如果父节点的数组下标是 i, 那么它的左孩子下标就是 i * 2 + 1, 右孩子下标就是 i * 2 + 2
+
+```java
+import java.util.*;
+
+public class Main {
+  static class TreeNode {
+    int val;
+    TreeNode left;
+    TreeNode right;
+
+    TreeNode(int val) {
+      this.val = val;
+    }
+  }
+
+  public static void main(String[] args) {
+    Scanner sc = new Scanner(System.in);
+    String input = sc.nextLine();
+    TreeNode root = stringToTreeNode(input);
+    inorderPrintTree(root);
+  }
+
+  public static TreeNode stringToTreeNode(String input) {
+    if (input.length() == 2) return null;
+
+    String[] elements = input.substring(1, input.length() - 1).split(",");
+
+    // 先将输入的数组转换为二叉树数组, 如果原先输入为 null, 就在数组中存 null, 建立的树也是 null
+    List<TreeNode> treeNodeList = new ArrayList<>();
+    for (String element : elements) {
+      TreeNode node = null;
+
+      if (!element.equals("null")) {
+        node = new TreeNode(Integer.parseInt(element));
+      }
+
+      treeNodeList.add(node);
+    }
+
+    TreeNode root = treeNodeList.get(0); // 赋予根节点
+    // 遍历二叉树数组完成树的建立, i * 2 + 1 < elements.length 是为了保证非满二叉树的
+    for (int i = 0; i * 2 + 1 < elements.length; i++) {
+      TreeNode node = treeNodeList.get(i);
+      if (node != null) {
+        node.left = treeNodeList.get(i * 2 + 1);
+        if (i * 2 + 2 < elements.length) {
+          node.right = treeNodeList.get(i * 2 + 2);
+        }
+      }
+    }
+
+    return root;
+  }
+
+  public static void inorderPrintTree(TreeNode root) {
+    if (root == null) return;
+
+    inorderPrintTree(root.left);
+    System.out.print(root.val + " ");
+    inorderPrintTree(root.right);
+  }
+}
+```
+
