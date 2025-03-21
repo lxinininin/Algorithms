@@ -142,6 +142,7 @@ class Solution {
       // 对于数组中有重复元素的情况, BinarySearch 可能会有 nums[l] = nums[mid] = nums[r], 此时无法判断区间 [l, mid] 和区间 [mid + 1, r] 哪个是有序的
       // ex: nums=[3,1,2,3,3,3,3], target=2, 首次 BinarySearch 时无法判断区间 [0,3] 和区间 [4,6] 哪个是有序的
       // 对于这种情况, 我们只能将当前二分区间的左边界加一, 右边界减一, 然后在新区间上继续二分查找
+      // 不能使用 while, 否则会出现 java.lang.ArrayIndexOutOfBoundsException
       if (nums[l] == nums[mid] && nums[mid] == nums[r]) {
         l++; r--;
       }

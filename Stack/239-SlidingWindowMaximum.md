@@ -64,6 +64,7 @@ class Solution {
       deq.offerLast(i);
 
       // 如果遍历的索引大于等于 k-1，开始记录结果
+      // 防止当 i = 0, k = 3, 直接把 i = 0 对应的元素写入 res
       if (i >= k - 1) {
         res[i - k + 1] = nums[deq.peekFirst()];
       }

@@ -54,8 +54,8 @@
 
 class Solution {
   public ListNode reverseKGroup(ListNode head, int k) {
-    ListNode hair = new ListNode(-1, head);
-    ListNode pre = hair;
+    ListNode prehead = new ListNode(-1, head);
+    ListNode pre = prehead;
 
     while (head != null) {
       ListNode tail = pre;
@@ -64,7 +64,7 @@ class Solution {
       for (int i = 0; i < k; i++) {
         tail = tail.next;
         if (tail == null) {
-          return hair.next;
+          return prehead.next;
         }
       }
       
@@ -84,14 +84,16 @@ class Solution {
       head = tail.next;
     }
     
-    return hair.next;
+    return prehead.next;
   }
   
   public ListNode[] reverseList(ListNode head, ListNode tail) {
     ListNode tailNext = tail.next;
     ListNode newHead = new ListNode();
     ListNode newTail = head;
-    // 这里不能直接用 tail.next 去替换 tailNext
+    // 这里不能直接用 tail.next 去替换 tailNext!!! 
+    // 确保在反转链表的过程中, 循环的终止条件不会受到链表结构变化的影响 (在反转链表的过程中, tail.next 的值可能会被修改)
+    // 直接使用 tail.next 可能会导致循环条件判断不准确，从而引发错误
     while (head != tailNext) {
       ListNode tmp = head;
       head = head.next;
@@ -106,3 +108,4 @@ class Solution {
 
 ```
 
+<img src="assets/image-20240902203924077.png" alt="image-20240902203924077" style="zoom: 15%;" />k
