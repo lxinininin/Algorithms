@@ -2695,3 +2695,1933 @@ class Solution {
 ```
 
 <img src="assets/image-20250320110323380.png" alt="image-20250320110323380" style="zoom: 15%;" />
+
+
+
+## 138. 随机链表的复制
+
+给你一个长度为 `n` 的链表，每个节点包含一个额外增加的随机指针 `random` ，该指针可以指向链表中的任何节点或空节点。
+
+构造这个链表的 **[深拷贝](https://baike.baidu.com/item/深拷贝/22785317?fr=aladdin)**。 深拷贝应该正好由 `n` 个 **全新** 节点组成，其中每个新节点的值都设为其对应的原节点的值。新节点的 `next` 指针和 `random` 指针也都应指向复制链表中的新节点，并使原链表和复制链表中的这些指针能够表示相同的链表状态。**复制链表中的指针都不应指向原链表中的节点** 。
+
+例如，如果原链表中有 `X` 和 `Y` 两个节点，其中 `X.random --> Y` 。那么在复制链表中对应的两个节点 `x` 和 `y` ，同样有 `x.random --> y` 。
+
+返回复制链表的头节点。
+
+用一个由 `n` 个节点组成的链表来表示输入/输出中的链表。每个节点用一个 `[val, random_index]` 表示：
+
+- `val`：一个表示 `Node.val` 的整数。
+- `random_index`：随机指针指向的节点索引（范围从 `0` 到 `n-1`）；如果不指向任何节点，则为 `null` 。
+
+你的代码 **只** 接受原链表的头节点 `head` 作为传入参数。
+
+ 
+
+**示例 1：**
+
+![img](assets/e1.png)
+
+```
+输入：head = [[7,null],[13,0],[11,4],[10,2],[1,0]]
+输出：[[7,null],[13,0],[11,4],[10,2],[1,0]]
+```
+
+**示例 2：**
+
+![img](assets/e2.png)
+
+```
+输入：head = [[1,1],[2,1]]
+输出：[[1,1],[2,1]]
+```
+
+**示例 3：**
+
+**![img](assets/e3.png)**
+
+```
+输入：head = [[3,null],[3,0],[3,null]]
+输出：[[3,null],[3,0],[3,null]]
+```
+
+ 
+
+**提示：**
+
+- `0 <= n <= 1000`
+- `-104 <= Node.val <= 104`
+- `Node.random` 为 `null` 或指向链表中的节点。
+
+
+
+----
+
+```java
+/*
+// Definition for a Node.
+class Node {
+    int val;
+    Node next;
+    Node random;
+
+    public Node(int val) {
+        this.val = val;
+        this.next = null;
+        this.random = null;
+    }
+}
+*/
+
+class Solution {
+    // 我们用哈希表记录每一个节点对应新节点的创建情况
+    // Key 是原链表的 node, value 是自己创建的 node
+    Map<Node, Node> cachedNodes = new HashMap<>();
+
+    public Node copyRandomList(Node head) {
+        if (head == null) return null;
+
+        if (!cachedNodes.containsKey(head)) {
+            Node node = new Node(head.val);
+            cachedNodes.put(head, node);
+            
+            // 我们检查「当前节点的 next」和「当前节点的 random」的创建情况
+            // 如果这两个节点中的任何一个节点的新节点没有被创建，我们都立刻递归地进行创建
+            node.next = copyRandomList(head.next);
+            node.random = copyRandomList(head.random);
+        }
+
+        return cachedNodes.get(head);
+    }
+}
+```
+
+
+
+## 148. 排序链表
+
+给你链表的头结点 `head` ，请将其按 **升序** 排列并返回 **排序后的链表** 。
+
+ 
+
+**示例 1：**
+
+![img](assets/sort_list_1.jpg)
+
+```
+输入：head = [4,2,1,3]
+输出：[1,2,3,4]
+```
+
+**示例 2：**
+
+![img](assets/sort_list_2.jpg)
+
+```
+输入：head = [-1,5,3,4,0]
+输出：[-1,0,3,4,5]
+```
+
+**示例 3：**
+
+```
+输入：head = []
+输出：[]
+```
+
+ 
+
+**提示：**
+
+- 链表中节点的数目在范围 `[0, 5 * 104]` 内
+- `-105 <= Node.val <= 105`
+
+ 
+
+**进阶：**你可以在 `O(n log n)` 时间复杂度和常数级空间复杂度下，对链表进行排序吗？
+
+
+
+---
+
+**方法一: 自顶向下 Merge-Sort**
+
+```java
+class Solution {
+    public ListNode sortList(ListNode head) {
+        return mergeSort_r(head, null);
+    }
+
+    public ListNode mergeSort_r(ListNode head, ListNode tail) {
+        // 如果没有节点就返回 null
+        if (head == null) {
+            return head;
+        }
+        // 如果是单节点就取消它的 next 关联并返回
+        if (head.next == tail) {
+            head.next = null;
+            return head;
+        }
+
+        // 快慢指针找中点
+        ListNode slow = head, fast = head;
+        while (fast != tail && fast.next != tail) {
+            slow = slow.next;
+            fast = fast.next.next;
+        }
+        ListNode mid = slow;
+        
+        // 递归排序左右两部分
+        ListNode list1 = mergeSort_r(head, mid); // 左闭右开区间!! [head, mid)
+        ListNode list2 = mergeSort_r(mid, tail); // 左闭右开区间!! [mid, tail)
+        ListNode sorted = merge(list1, list2);
+
+        return sorted;
+    }
+
+    public ListNode merge(ListNode head1, ListNode head2) {
+        ListNode preHead = new ListNode(-1);
+        ListNode cur = preHead, ptr1 = head1, ptr2 = head2;
+        while (ptr1 != null && ptr2 != null) {
+            if (ptr1.val <= ptr2.val) {
+                cur.next = ptr1;
+                ptr1 = ptr1.next;
+            } else {
+                cur.next = ptr2;
+                ptr2 = ptr2.next;
+            }
+
+            cur = cur.next;
+        }
+
+        if (ptr1 == null) {
+            cur.next = ptr2;
+        } else {
+            cur.next = ptr1;
+        }
+
+        return preHead.next;
+    }
+}
+```
+
+- 时间复杂度: *O*(*n*log*n*), 其中 *n* 是链表的长度
+- 空间复杂度: *O*(log*n*), 其中 *n* 是链表的长度; 空间复杂度主要取决于递归调用的栈空间
+
+
+
+**方法二: 自底向上 Merge-Sort**
+
+- 时间复杂度: *O*(*n*log*n*), 其中 *n* 是链表的长度
+- 空间复杂度: *O*(1)
+
+
+
+# Binary Trees
+
+## 94. 二叉树的中序遍历
+
+给定一个二叉树的根节点 `root` ，返回 *它的 **中序** 遍历* 。
+
+ 
+
+**示例 1：**
+
+![img](assets/inorder_1.jpg)
+
+```
+输入：root = [1,null,2,3]
+输出：[1,3,2]
+```
+
+**示例 2：**
+
+```
+输入：root = []
+输出：[]
+```
+
+**示例 3：**
+
+```
+输入：root = [1]
+输出：[1]
+```
+
+ 
+
+**提示：**
+
+- 树中节点数目在范围 `[0, 100]` 内
+- `-100 <= Node.val <= 100`
+
+ 
+
+**进阶:** 递归算法很简单，你可以通过迭代算法完成吗？
+
+
+
+---
+
+**方法一: 递归**
+
+```java
+/**
+ * Definition for a binary tree node.
+ * public class TreeNode {
+ *     int val;
+ *     TreeNode left;
+ *     TreeNode right;
+ *     TreeNode() {}
+ *     TreeNode(int val) { this.val = val; }
+ *     TreeNode(int val, TreeNode left, TreeNode right) {
+ *         this.val = val;
+ *         this.left = left;
+ *         this.right = right;
+ *     }
+ * }
+ */
+
+class Solution {
+    List<Integer> res = new ArrayList<>();
+
+    public List<Integer> inorderTraversal(TreeNode root) {
+        inorderTraversal_r(root);
+
+        return res;
+    }
+
+    public void inorderTraversal_r(TreeNode root) {
+        if (root == null) return;
+
+        inorderTraversal_r(root.left);
+        res.add(root.val);
+        inorderTraversal_r(root.right);
+    }
+}
+```
+
+
+
+==**方法二: 迭代**==
+
+具体动画见官网
+
+```java
+class Solution {
+    public List<Integer> inorderTraversal(TreeNode root) {
+        List<Integer> res = new ArrayList<>();
+        Deque<TreeNode> stack = new ArrayDeque<>();
+        while (root != null || !stack.isEmpty()) {
+            /* 从单个节点视角来看, 每个节点所做的事情都是一样的
+               1. 首先先将自己压入栈底, 然后不断将左子节点压入栈中, 直到左子节点为空
+               2. 然后弹出栈顶元素, 也就是左子树为空的节点, 将该节点的值添加到结果中
+               3. 最后将当前节点赋值为该节点的右子节点, 然后重复外层循环
+           	*/
+        	while (root != null) {
+                stack.push(root);
+                root = root.left;
+            }
+
+            root = stack.pop();
+            res.add(root.val);
+            root = root.right;
+        }
+
+        return res;
+    }
+}
+```
+
+
+
+## 104. 二叉树的最大深度
+
+给定一个二叉树 `root` ，返回其最大深度。
+
+二叉树的 **最大深度** 是指从根节点到最远叶子节点的最长路径上的节点数。
+
+ 
+
+**示例 1：**
+
+![img](assets/tmp-tree.jpg)
+
+ 
+
+```
+输入：root = [3,9,20,null,null,15,7]
+输出：3
+```
+
+**示例 2：**
+
+```
+输入：root = [1,null,2]
+输出：2
+```
+
+ 
+
+**提示：**
+
+- 树中节点的数量在 `[0, 104]` 区间内。
+- `-100 <= Node.val <= 100`
+
+
+
+---
+
+**方法一: DFS**
+
+```java
+class Solution {
+    public int maxDepth(TreeNode root) {
+        if (root == null) return 0;
+
+        int left = maxDepth(root.left);
+        int right = maxDepth(root.right);
+        
+        return Math.max(left, right) + 1;
+    }
+}
+```
+
+
+
+==**方法二: BFS**==
+
+```java
+class Solution {
+    public int maxDepth(TreeNode root) {
+        if (root == null) return 0;
+
+        // 队列里存放的是「当前层的所有节点」
+        Queue<TreeNode> queue = new LinkedList<>();
+        queue.offer(root);
+        int ans = 0;
+        while (!queue.isEmpty()) {
+            // 每次拓展下一层的时候，不同于广度优先搜索的每次只从队列里拿出一个节点，我们需要将队列里的所有节点都拿出来进行拓展，这样能保证每次拓展完的时候队列里存放的是当前层的所有节点，即我们是一层一层地进行拓展, 每一层都让 ans + 1, 这样 ans 就会是该二叉树的最大深度
+            // 所以我们需要 size 来记录当前层的节点数量
+            int size = queue.size();
+            // 内层 while (size > 0) 循环会逐个处理当前层的所有节点, 并将它们的子节点加入队列（即下一层的节点）
+            while (size > 0) {
+                TreeNode node = queue.poll();
+                if (node.left != null) {
+                    queue.offer(node.left);
+                }
+                if (node.right != null) {
+                    queue.offer(node.right);
+                }
+
+                // 每处理完一个节点, size--, 直到 size == 0, 表示当前层已全部处理完毕
+                size--;
+            }
+
+            ans++;
+        }
+
+        return ans;
+    }
+}
+```
+
+
+
+## 226. 翻转二叉树
+
+给你一棵二叉树的根节点 `root` ，翻转这棵二叉树，并返回其根节点。
+
+ 
+
+**示例 1：**
+
+![img](assets/invert1-tree.jpg)
+
+```
+输入：root = [4,2,7,1,3,6,9]
+输出：[4,7,2,9,6,3,1]
+```
+
+**示例 2：**
+
+![img](assets/invert2-tree.jpg)
+
+```
+输入：root = [2,1,3]
+输出：[2,3,1]
+```
+
+**示例 3：**
+
+```
+输入：root = []
+输出：[]
+```
+
+ 
+
+**提示：**
+
+- 树中节点数目范围在 `[0, 100]` 内
+- `-100 <= Node.val <= 100`
+
+
+
+---
+
+**错误写法:**
+
+```java
+class Solution {
+    public TreeNode invertTree(TreeNode root) {
+        if (root == null) return null;
+
+        // 将 root.left 修改为翻转后的 root.right
+        root.left = invertTree(root.right);
+        // 此时 root.left 已经指向原右子树, 而原左子树的信息丢失了!!!
+        root.right = invertTree(root.left);
+        return root;
+    }
+}
+```
+
+**正确写法:**
+
+```java
+class Solution {
+    public TreeNode invertTree(TreeNode root) {
+        if (root == null) return null;
+
+        TreeNode left = invertTree(root.right);
+        TreeNode right = invertTree(root.left);
+
+        root.left = left;
+        root.right = right;
+
+        return root;
+    }
+}
+```
+
+
+
+## 101. 对称二叉树
+
+给你一个二叉树的根节点 `root` ， 检查它是否轴对称。
+
+ 
+
+**示例 1：**
+
+![img](assets/1698026966-JDYPDU-image.png)
+
+```
+输入：root = [1,2,2,3,4,4,3]
+输出：true
+```
+
+**示例 2：**
+
+![img](assets/1698027008-nPFLbM-image.png)
+
+```
+输入：root = [1,2,2,null,3,null,3]
+输出：false
+```
+
+ 
+
+**提示：**
+
+- 树中节点数目在范围 `[1, 1000]` 内
+- `-100 <= Node.val <= 100`
+
+ 
+
+**进阶：**你可以运用递归和迭代两种方法解决这个问题吗？
+
+
+
+---
+
+**方法一: 递归**
+
+```java
+class Solution {
+    public boolean isSymmetric(TreeNode root) {
+        return check(root.left, root.right);
+    }
+
+    public boolean check(TreeNode p, TreeNode q) {
+        if (p == null && q == null) return true;
+
+        // 当 p 是 null, q 不是 null, 或者 q 是 null, p 不是 null, 那么就是不对称的树
+        // 因为上一个条件已经把 p q 都是 null 的情况返回了, 所以执行到这儿就没有 p q 都是 null 的情况了
+        if (p == null || q == null) return false;
+
+        return p.val == q.val && check(p.left, q.right) && check(p.right, q.left);
+    }
+}
+```
+
+
+
+**方法二: 迭代**
+
+```java
+class Solution {
+    public boolean isSymmetric(TreeNode root) {
+        return check(root, root);
+    }
+
+    public boolean check(TreeNode p, TreeNode q) {
+        Queue<TreeNode> queue = new LinkedList();
+        queue.offer(p); queue.offer(q);
+
+        while (!queue.isEmpty()) {
+            TreeNode u = queue.poll();
+            TreeNode v = queue.poll();
+
+            if (u == null && v == null) continue;
+
+            if (u == null || v == null || u.val != v.val) return false;
+
+            queue.offer(u.left); queue.offer(v.right);
+            
+            queue.offer(u.right); queue.offer(v.left);
+        }
+
+        return true;
+    }
+}
+```
+
+
+
+## 543. 二叉树的直径
+
+给你一棵二叉树的根节点，返回该树的 **直径** 。
+
+二叉树的 **直径** 是指树中任意两个节点之间最长路径的 **长度** 。这条路径可能经过也可能不经过根节点 `root` 。
+
+两节点之间路径的 **长度** 由它们之间边数表示。
+
+ 
+
+**示例 1：**
+
+![img](assets/diamtree.jpg)
+
+```
+输入：root = [1,2,3,4,5]
+输出：3
+解释：3 ，取路径 [4,2,1,3] 或 [5,2,1,3] 的长度。
+```
+
+**示例 2：**
+
+```
+输入：root = [1,2]
+输出：1
+```
+
+ 
+
+**提示：**
+
+- 树中节点数目在范围 `[1, 104]` 内
+- `-100 <= Node.val <= 100`
+
+
+
+---
+
+```java
+class Solution {
+    int ans = 0;
+
+    public int diameterOfBinaryTree(TreeNode root) {
+        diameterOfBinaryTree_r(root);
+        return ans;
+    }
+
+    public int diameterOfBinaryTree_r(TreeNode root) {
+        if (root == null) return 0;
+
+        int left = diameterOfBinaryTree_r(root.left); // 获取左子树的最大深度
+        int right = diameterOfBinaryTree_r(root.right); // 获取右子树的最大深度
+        // 当前最大直径为左子树的最大深度加上右子树的最大深度
+        ans = Math.max(ans, left + right); 
+
+        return Math.max(left, right) + 1; // 返回当前最大深度
+    }
+}
+```
+
+
+
+## 102. 二叉树的层序遍历
+
+给你二叉树的根节点 `root` ，返回其节点值的 **层序遍历** 。 （即逐层地，从左到右访问所有节点）。
+
+ 
+
+**示例 1：**
+
+![img](assets/tree1.jpg)
+
+```
+输入：root = [3,9,20,null,null,15,7]
+输出：[[3],[9,20],[15,7]]
+```
+
+**示例 2：**
+
+```
+输入：root = [1]
+输出：[[1]]
+```
+
+**示例 3：**
+
+```
+输入：root = []
+输出：[]
+```
+
+ 
+
+**提示：**
+
+- 树中节点数目在范围 `[0, 2000]` 内
+- `-1000 <= Node.val <= 1000`
+
+
+
+```java
+/**
+ * Definition for a binary tree node.
+ * public class TreeNode {
+ *     int val;
+ *     TreeNode left;
+ *     TreeNode right;
+ *     TreeNode() {}
+ *     TreeNode(int val) { this.val = val; }
+ *     TreeNode(int val, TreeNode left, TreeNode right) {
+ *         this.val = val;
+ *         this.left = left;
+ *         this.right = right;
+ *     }
+ * }
+ */
+class Solution {
+    public List<List<Integer>> levelOrder(TreeNode root) {
+        List<List<Integer>> res = new ArrayList<>();
+        if (root == null) return res;
+
+        Queue<TreeNode> queue = new LinkedList<>();
+        queue.offer(root);
+        while (!queue.isEmpty()) {
+            List<Integer> curLevelNodes = new ArrayList<>();
+            int curLevelSize = queue.size();
+            for (int i = 0; i < curLevelSize; i++) {
+                TreeNode node = queue.poll();
+                curLevelNodes.add(node.val);
+
+                if (node.left != null) {
+                    queue.offer(node.left);
+                }
+            
+                if (node.right != null) {
+                    queue.offer(node.right);
+                } 
+            }
+
+            res.add(curLevelNodes);
+        }
+
+        return res;
+    }
+}
+```
+
+
+
+## 108. 将有序数组转换为二叉搜索树
+
+给你一个整数数组 `nums` ，其中元素已经按 **升序** 排列，请你将其转换为一棵 平衡二叉搜索树。
+
+ 
+
+**示例 1：**
+
+![img](assets/btree1.jpg)
+
+```
+输入：nums = [-10,-3,0,5,9]
+输出：[0,-3,9,-10,null,5]
+解释：[0,-10,5,null,-3,null,9] 也将被视为正确答案：
+```
+
+**示例 2：**
+
+![img](assets/btree.jpg)
+
+```
+输入：nums = [1,3]
+输出：[3,1]
+解释：[1,null,3] 和 [3,1] 都是高度平衡二叉搜索树。
+```
+
+ 
+
+**提示：**
+
+- `1 <= nums.length <= 104`
+- `-104 <= nums[i] <= 104`
+- `nums` 按 **严格递增** 顺序排列
+
+
+
+```java
+class Solution {
+    public TreeNode sortedArrayToBST(int[] nums) {
+        return construct(nums, 0, nums.length - 1);
+    }
+
+    public TreeNode construct(int[] nums, int left, int right) {
+        if (left > right) return null;
+
+        // 总是选择中间位置左边的数字作为根节点
+        int mid = (left + right) / 2;
+
+        TreeNode root = new TreeNode(nums[mid]);
+        root.left = construct(nums, left, mid - 1);
+        root.right = construct(nums, mid + 1, right);
+
+        return root;
+    }
+}
+```
+
+
+
+## 98. 验证二叉搜索树
+
+给你一个二叉树的根节点 `root` ，判断其是否是一个有效的二叉搜索树。
+
+**有效** 二叉搜索树定义如下：
+
+- 节点的左子树只包含 **小于** 当前节点的数。
+- 节点的右子树只包含 **大于** 当前节点的数。
+- 所有左子树和右子树自身必须也是二叉搜索树。
+
+ 
+
+**示例 1：**
+
+![img](assets/tree1-20250409215626582.jpg)
+
+```
+输入：root = [2,1,3]
+输出：true
+```
+
+**示例 2：**
+
+![img](assets/tree2.jpg)
+
+```
+输入：root = [5,1,4,null,null,3,6]
+输出：false
+解释：根节点的值是 5 ，但是右子节点的值是 4 。
+```
+
+ 
+
+**提示：**
+
+- 树中节点数目范围在`[1, 104]` 内
+- `-231 <= Node.val <= 231 - 1`
+
+
+
+```java
+class Solution {
+    public boolean isValidBST(TreeNode root) {
+        return isValidBST_r(root, Long.MIN_VALUE, Long.MAX_VALUE);
+    }
+
+    public boolean isValidBST_r(TreeNode node, long lower, long upper) {
+        if (node == null) return true;
+
+        if (node.val <= lower || node.val >= upper) return false;
+
+        return isValidBST_r(node.left, lower, node.val) && isValidBST_r(node.right, node.val, upper);
+    }
+}
+```
+
+
+
+# Stack
+
+## 20. 有效的括号
+
+给定一个只包括 `'('`，`')'`，`'{'`，`'}'`，`'['`，`']'` 的字符串 `s` ，判断字符串是否有效。
+
+有效字符串需满足：
+
+1. 左括号必须用相同类型的右括号闭合。
+2. 左括号必须以正确的顺序闭合。
+3. 每个右括号都有一个对应的相同类型的左括号。
+
+ 
+
+**示例 1：**
+
+**输入：**s = "()"
+
+**输出：**true
+
+**示例 2：**
+
+**输入：**s = "()[]{}"
+
+**输出：**true
+
+**示例 3：**
+
+**输入：**s = "(]"
+
+**输出：**false
+
+**示例 4：**
+
+**输入：**s = "([])"
+
+**输出：**true
+
+ 
+
+**提示：**
+
+- `1 <= s.length <= 104`
+- `s` 仅由括号 `'()[]{}'` 组成
+
+
+
+---
+
+```java
+class Solution {
+    public boolean isValid(String s) {
+        int n = s.length();
+        if (n % 2 == 1) return false;
+
+        Map<Character, Character> map = new HashMap<>();
+        // 注意 key 和 value 的值
+        map.put(')', '(');
+        map.put(']', '[');
+        map.put('}', '{');
+
+        Deque<Character> stack = new LinkedList<>();
+        for (int i = 0; i < n; i++) {
+            char ch = s.charAt(i);
+            if (map.containsKey(ch)) {
+                if (stack.isEmpty() || stack.peek() != map.get(ch)) return false;
+
+                stack.pop();
+            } else {
+                stack.push(ch);
+            }
+        }
+
+        return stack.isEmpty();
+    }
+}
+```
+
+
+
+## 155. 最小栈
+
+设计一个支持 `push` ，`pop` ，`top` 操作，并能在常数时间内检索到最小元素的栈。
+
+实现 `MinStack` 类:
+
+- `MinStack()` 初始化堆栈对象。
+- `void push(int val)` 将元素val推入堆栈。
+- `void pop()` 删除堆栈顶部的元素。
+- `int top()` 获取堆栈顶部的元素。
+- `int getMin()` 获取堆栈中的最小元素。
+
+ 
+
+**示例 1:**
+
+```
+输入：
+["MinStack","push","push","push","getMin","pop","top","getMin"]
+[[],[-2],[0],[-3],[],[],[],[]]
+
+输出：
+[null,null,null,null,-3,null,0,-2]
+
+解释：
+MinStack minStack = new MinStack();
+minStack.push(-2);
+minStack.push(0);
+minStack.push(-3);
+minStack.getMin();   --> 返回 -3.
+minStack.pop();
+minStack.top();      --> 返回 0.
+minStack.getMin();   --> 返回 -2.
+```
+
+ 
+
+**提示：**
+
+- `-231 <= val <= 231 - 1`
+- `pop`、`top` 和 `getMin` 操作总是在 **非空栈** 上调用
+- `push`, `pop`, `top`, and `getMin`最多被调用 `3 * 104` 次
+
+
+
+---
+
+```java
+class MinStack {
+    Deque<Integer> stack;
+    Deque<Integer> minStack;
+
+    public MinStack() {
+        stack = new LinkedList<>();
+        minStack = new LinkedList<>();
+        minStack.push(Integer.MAX_VALUE);
+    }
+    
+    public void push(int val) {
+        stack.push(val);
+        minStack.push(Math.min(minStack.peek(), val));
+    }
+    
+    public void pop() {
+        stack.pop();
+        minStack.pop();
+    }
+    
+    public int top() {
+        return stack.peek();
+    }
+    
+    public int getMin() {
+        return minStack.peek();
+    }
+}
+
+/**
+ * Your MinStack object will be instantiated and called as such:
+ * MinStack obj = new MinStack();
+ * obj.push(val);
+ * obj.pop();
+ * int param_3 = obj.top();
+ * int param_4 = obj.getMin();
+ */
+```
+
+
+
+## 394. 字符串解码
+
+给定一个经过编码的字符串，返回它解码后的字符串。
+
+编码规则为: `k[encoded_string]`，表示其中方括号内部的 `encoded_string` 正好重复 `k` 次。注意 `k` 保证为正整数。
+
+你可以认为输入字符串总是有效的；输入字符串中没有额外的空格，且输入的方括号总是符合格式要求的。
+
+此外，你可以认为原始数据不包含数字，所有的数字只表示重复的次数 `k` ，例如不会出现像 `3a` 或 `2[4]` 的输入。
+
+ 
+
+**示例 1：**
+
+```
+输入：s = "3[a]2[bc]"
+输出："aaabcbc"
+```
+
+**示例 2：**
+
+```
+输入：s = "3[a2[c]]"
+输出："accaccacc"
+```
+
+**示例 3：**
+
+```
+输入：s = "2[abc]3[cd]ef"
+输出："abcabccdcdcdef"
+```
+
+**示例 4：**
+
+```
+输入：s = "abc3[cd]xyz"
+输出："abccdcdcdxyz"
+```
+
+ 
+
+**提示：**
+
+- `1 <= s.length <= 30`
+- `s` 由小写英文字母、数字和方括号 `'[]'` 组成
+- `s` 保证是一个 **有效** 的输入。
+- `s` 中所有整数的取值范围为 `[1, 300]` 
+
+
+
+---
+
+**方法一: 辅助栈法**
+
+```java
+class Solution {
+    public String decodeString(String s) {
+        StringBuffer res = new StringBuffer(); // 当前累积的结果
+        int multi = 0; // 当前正在解析的数字
+        Deque<Integer> stack_multi = new LinkedList<>(); // 数字栈
+        Deque<String> stack_res = new LinkedList<>(); // 字符串栈
+
+        for (Character c : s.toCharArray()) {
+            // 处理数字, 可能有连续多位, 如: 100...
+            if (c >= '0' && c <= '9') {
+                multi = multi * 10 + c - '0';
+            }
+            else if (c == '[') {
+                // 遇到左括号, 将当前multi和res入栈
+                stack_multi.push(multi);
+                stack_res.push(res.toString());
+                multi = 0; // 重置 multi
+                res = new StringBuffer(); // 重置 res
+            }
+            else if (c == ']') {
+                // 遇到右括号, 开始解码
+                StringBuffer tmp = new StringBuffer();
+                int cur_multi = stack_multi.pop(); // 取出重复次数
+                // 重复当前字符串
+                for (int i = 0; i < cur_multi; i++) { 
+                    tmp.append(res);
+                }
+                res = new StringBuffer(stack_res.pop() + tmp); // 与之前的结果拼接
+            }
+            else {
+                // 普通字符, 直接添加到当前结果
+                res.append(c);
+            }
+        }
+
+        return res.toString();
+    }
+}
+```
+
+
+
+**方法二: 递归法**
+
+```java
+class Solution {
+    public String decodeString(String s) {
+        return dfs(s, 0)[0]; //启动递归, 初始位置为 0
+    }
+
+    // 返回一个 String 数组
+    // [0]: 当前索引位置 (用于外层更新位置)
+    // [1]: 解码后的字符串
+    public String[] dfs(String s, int i) {
+        StringBuffer sb = new StringBuffer(); // 当前层的解码结果
+        int multi = 0; // 当前累计的重复次数
+
+        while (i < s.length()) {
+            char c = s.charAt(i);
+
+            if (c >= '0' && c <= '9') {
+                // 处理数字
+                multi = multi * 10 + c - '0';
+            }
+            else if (c == '[') {
+                // 遇到左括号, 进入递归
+                String[] tmp = dfs(s, i + 1); // 递归处理括号内的内容
+                i = Integer.parseInt(tmp[0]); // 更新索引位置
+                // 将括号内的内容重复 multi 次
+                while (multi > 0) {
+                    sb.append(tmp[1]);
+                    multi--;
+                }
+            }
+            else if (c == ']') {
+                // 遇到右括号, 返回当前索引和结果
+                return new String[] {String.valueOf(i), sb.toString()};
+            }
+            else {
+                // 普通字符直接添加
+                sb.append(c);
+            }
+
+            i++;
+        }
+
+        return new String[]{sb.toString()}; // 最终结果, 直接将其放在 [0] 就可以了
+    }
+}
+```
+
+
+
+## 739. 每日温度
+
+给定一个整数数组 `temperatures` ，表示每天的温度，返回一个数组 `answer` ，其中 `answer[i]` 是指对于第 `i` 天，下一个更高温度出现在几天后。如果气温在这之后都不会升高，请在该位置用 `0` 来代替。
+
+ 
+
+**示例 1:**
+
+```
+输入: temperatures = [73,74,75,71,69,72,76,73]
+输出: [1,1,4,2,1,1,0,0]
+```
+
+**示例 2:**
+
+```
+输入: temperatures = [30,40,50,60]
+输出: [1,1,1,0]
+```
+
+**示例 3:**
+
+```
+输入: temperatures = [30,60,90]
+输出: [1,1,0]
+```
+
+ 
+
+**提示：**
+
+- `1 <= temperatures.length <= 105`
+- `30 <= temperatures[i] <= 100`
+
+
+
+---
+
+```java
+class Solution {
+    public int[] dailyTemperatures(int[] temperatures) {
+        int n = temperatures.length;
+        int[] res = new int[n];
+        
+        Deque<Integer> stack = new LinkedList<>(); // 存储 temperatures 数组的下标
+        for (int i = 0; i < n; i++) {
+            int temperature = temperatures[i];
+            
+            while (!stack.isEmpty() && temperature > temperatures[stack.peek()]) {
+                int preIndex = stack.pop();
+                res[preIndex] = i - preIndex;
+            }
+
+            stack.push(i);
+        }
+
+        return res;
+    }
+}
+```
+
+对于温度列表 `[73,74,75,71,69,72,76,73]`, 单调栈 stack 的初始状态为空, 答案 `res` 的初始状态是 `[0,0,0,0,0,0,0,0]`, 按照以下步骤更新单调栈和答案, 其中**单调栈内的元素都是下标**, 括号内的数字表示下标在温度列表中对应的温度
+
+* 当 i=0 时, 单调栈为空, 因此将 0 进栈
+
+	* `stack=[0(73)]`
+
+	* `ans=[0,0,0,0,0,0,0,0]`
+
+* 当 i=1 时, 由于 74 大于 73, 因此移除栈顶元素 0, 赋值 `ans[0]:=1−0`, 将 1 进栈
+
+	* `stack=[1(74)]`
+
+	* `ans=[1,0,0,0,0,0,0,0]`
+
+* 当 i=2 时, 由于 75 大于 74, 因此移除栈顶元素 1, 赋值 `ans[1]:=2−1`, 将 2 进栈
+
+	* `stack=[2(75)]`
+
+	* `ans=[1,1,0,0,0,0,0,0]`
+
+* 当 i=3 时, 由于 71 小于 75, 因此将 3 进栈
+
+	* `stack=[2(75),3(71)]`
+
+	* `ans=[1,1,0,0,0,0,0,0]`
+
+* 当 i=4 时, 由于 69 小于 71, 因此将 4 进栈
+
+	* `stack=[2(75),3(71),4(69)]`
+
+	* `ans=[1,1,0,0,0,0,0,0]`
+
+* 当 i=5 时, 由于 72 大于 69 和 71, 因此依次移除栈顶元素 4 和 3, 赋值 `ans[4]:=5−4` 和 `ans[3]:=5−3`, 将 5 进栈
+
+	* `stack=[2(75),5(72)]`
+
+	* `ans=[1,1,0,2,1,0,0,0]`
+
+* 当 i=6 时, 由于 76 大于 72 和 75, 因此依次移除栈顶元素 5 和 2, 赋值 `ans[5]:=6−5` 和 `ans[2]:=6−2`, 将 6 进栈
+
+	* `stack=[6(76)]`
+
+	* `ans=[1,1,4,2,1,1,0,0]`
+
+* 当 i=7 时, 由于 73 小于 76, 因此将 7 进栈
+
+	* `stack=[6(76),7(73)]`
+
+	* `ans=[1,1,4,2,1,1,0,0]`
+
+为什么可以在弹栈的时候更新 `ans[prevIndex]` 呢? 因为在这种情况下, 即将进栈的 `i` 对应的 `temperatures[i]` 一定是 `temperatures[preIndex]` 右边第一个比它大的元素; 如果 `preIndex` 和 `i` 有比它大的元素, 假设下标为 `j`, 那么 `preIndex` 一定会在下标 `j` 的那一轮被弹掉
+
+
+
+# Heap
+
+## 215. 数组中的第K个最大元素
+
+给定整数数组 `nums` 和整数 `k`，请返回数组中第 `k` 个最大的元素。
+
+请注意，你需要找的是数组排序后的第 `k` 个最大的元素，而不是第 `k` 个不同的元素。
+
+你必须设计并实现时间复杂度为 `O(n)` 的算法解决此问题。
+
+ 
+
+**示例 1:**
+
+```
+输入: [3,2,1,5,6,4], k = 2
+输出: 5
+```
+
+**示例 2:**
+
+```
+输入: [3,2,3,1,2,4,5,5,6], k = 4
+输出: 4
+```
+
+ 
+
+**提示：** 
+
+- `1 <= k <= nums.length <= 105`
+- `-104 <= nums[i] <= 104`
+
+
+
+---
+
+```java
+```
+
+
+
+# Greedy
+
+## 121. 买卖股票的最佳时机
+
+给定一个数组 `prices` ，它的第 `i` 个元素 `prices[i]` 表示一支给定股票第 `i` 天的价格。
+
+你只能选择 **某一天** 买入这只股票，并选择在 **未来的某一个不同的日子** 卖出该股票。设计一个算法来计算你所能获取的最大利润。
+
+返回你可以从这笔交易中获取的最大利润。如果你不能获取任何利润，返回 `0` 。
+
+ 
+
+**示例 1：**
+
+```
+输入：[7,1,5,3,6,4]
+输出：5
+解释：在第 2 天（股票价格 = 1）的时候买入，在第 5 天（股票价格 = 6）的时候卖出，最大利润 = 6-1 = 5 。
+     注意利润不能是 7-1 = 6, 因为卖出价格需要大于买入价格；同时，你不能在买入前卖出股票。
+```
+
+**示例 2：**
+
+```
+输入：prices = [7,6,4,3,1]
+输出：0
+解释：在这种情况下, 没有交易完成, 所以最大利润为 0。
+```
+
+ 
+
+**提示：**
+
+- `1 <= prices.length <= 105`
+- `0 <= prices[i] <= 104`
+
+
+
+---
+
+```java
+class Solution {
+    public int maxProfit(int[] prices) {
+        int minprice = Integer.MAX_VALUE;
+        int maxprofit = 0;
+        for (int i = 0; i < prices.length; i++) {
+            if (prices[i] < minprice) {
+                minprice = prices[i];
+            }
+            else if (prices[i] - minprice > maxprofit) {
+                maxprofit = prices[i] - minprice;
+            }
+        }
+
+        return maxprofit;
+    }
+}
+```
+
+
+
+## 55. 跳跃游戏
+
+给你一个非负整数数组 `nums` ，你最初位于数组的 **第一个下标** 。数组中的每个元素代表你在该位置可以跳跃的最大长度。
+
+判断你是否能够到达最后一个下标，如果可以，返回 `true` ；否则，返回 `false` 。
+
+ 
+
+**示例 1：**
+
+```
+输入：nums = [2,3,1,1,4]
+输出：true
+解释：可以先跳 1 步，从下标 0 到达下标 1, 然后再从下标 1 跳 3 步到达最后一个下标。
+```
+
+**示例 2：**
+
+```
+输入：nums = [3,2,1,0,4]
+输出：false
+解释：无论怎样，总会到达下标为 3 的位置。但该下标的最大跳跃长度是 0 ， 所以永远不可能到达最后一个下标。
+```
+
+ 
+
+**提示：**
+
+- `1 <= nums.length <= 104`
+- `0 <= nums[i] <= 105`
+
+
+
+---
+
+```java
+class Solution {
+    public boolean canJump(int[] nums) {
+        int n = nums.length;
+        int maxReachable = 0;
+        for (int i = 0; i < n; i++) {
+            if (maxReachable < i) return false;
+
+            maxReachable = Math.max(maxReachable, i + nums[i]);
+            if (maxReachable >= n - 1) return true;
+        }
+
+        return false;
+    }
+}
+```
+
+
+
+## 45. 跳跃游戏 II
+
+给定一个长度为 `n` 的 **0 索引**整数数组 `nums`。初始位置为 `nums[0]`。
+
+每个元素 `nums[i]` 表示从索引 `i` 向后跳转的最大长度。换句话说，如果你在 `nums[i]` 处，你可以跳转到任意 `nums[i + j]` 处:
+
+- `0 <= j <= nums[i]` 
+- `i + j < n`
+
+返回到达 `nums[n - 1]` 的最小跳跃次数。生成的测试用例可以到达 `nums[n - 1]`。
+
+ 
+
+**示例 1:**
+
+```
+输入: nums = [2,3,1,1,4]
+输出: 2
+解释: 跳到最后一个位置的最小跳跃数是 2。
+     从下标为 0 跳到下标为 1 的位置，跳 1 步，然后跳 3 步到达数组的最后一个位置。
+```
+
+**示例 2:**
+
+```
+输入: nums = [2,3,0,1,4]
+输出: 2
+```
+
+ 
+
+**提示:**
+
+- `1 <= nums.length <= 104`
+- `0 <= nums[i] <= 1000`
+- 题目保证可以到达 `nums[n-1]`
+
+
+
+---
+
+```java
+class Solution {
+    public int jump(int[] nums) {
+        int length = nums.length;
+        int end = 0;        // 当前跳跃能到达的最远位置
+        int maxPosition = 0; // 下一步能到达的最远位置
+        int steps = 0;       // 跳跃次数
+        
+        // 注意：只需要遍历到倒数第二个元素
+        for (int i = 0; i < length - 1; i++) {
+            // 更新下一步能到达的最远位置
+            maxPosition = Math.max(maxPosition, i + nums[i]);
+            
+            // 到达当前跳跃的边界，必须进行跳跃
+            if (i == end) {
+                end = maxPosition; // 更新边界为新的最远位置
+                steps++;           // 增加跳跃次数
+            }
+        }
+        return steps;
+    }
+}
+```
+
+
+
+## 763. 划分字母区间
+
+给你一个字符串 `s` 。我们要把这个字符串划分为尽可能多的片段，同一字母最多出现在一个片段中。例如，字符串 `"ababcc"` 能够被分为 `["abab", "cc"]`，但类似 `["aba", "bcc"]` 或 `["ab", "ab", "cc"]` 的划分是非法的。
+
+注意，划分结果需要满足：将所有划分结果按顺序连接，得到的字符串仍然是 `s` 。
+
+返回一个表示每个字符串片段的长度的列表。
+
+ 
+
+**示例 1：**
+
+```
+输入：s = "ababcbacadefegdehijhklij"
+输出：[9,7,8]
+解释：
+划分结果为 "ababcbaca"、"defegde"、"hijhklij" 。
+每个字母最多出现在一个片段中。
+像 "ababcbacadefegde", "hijhklij" 这样的划分是错误的，因为划分的片段数较少。 
+```
+
+**示例 2：**
+
+```
+输入：s = "eccbbbbdec"
+输出：[10]
+```
+
+ 
+
+**提示：**
+
+- `1 <= s.length <= 500`
+- `s` 仅由小写英文字母组成
+
+
+
+---
+
+```java
+class Solution {
+    public List<Integer> partitionLabels(String s) {
+        // 1. 记录每个字符最后出现的位置
+        int[] last = new int[26]; // 26 个字母的最后出现位置
+        int n = s.length();
+        for (int i = 0; i < n; i++) {
+            last[s.charAt(i) - 'a'] = i; // 更新字符的最后位置
+        }
+
+        // 2. 划分片段
+        List<Integer> res = new ArrayList<>();
+        int start = 0, end = 0; // 当前片段的起始和结束位置
+        for (int i = 0; i < n; i++) {
+            // 扩展当前片段的结束位置
+            end = Math.max(end, last[s.charAt(i) - 'a']);
+
+            // 当当前位置等于片段结束位置时, 找到一个划分
+            if (i == end) {
+                res.add(end - start + 1); // 记录片段长度
+                start = end + 1; // 开始新的片段
+            }
+        }
+
+        return res;
+    }
+}
+```
+
+
+
+# Dynamic Programming
+
+## 70. 爬楼梯
+
+假设你正在爬楼梯。需要 `n` 阶你才能到达楼顶。
+
+每次你可以爬 `1` 或 `2` 个台阶。你有多少种不同的方法可以爬到楼顶呢？
+
+ 
+
+**示例 1：**
+
+```
+输入：n = 2
+输出：2
+解释：有两种方法可以爬到楼顶。
+1. 1 阶 + 1 阶
+2. 2 阶
+```
+
+**示例 2：**
+
+```
+输入：n = 3
+输出：3
+解释：有三种方法可以爬到楼顶。
+1. 1 阶 + 1 阶 + 1 阶
+2. 1 阶 + 2 阶
+3. 2 阶 + 1 阶
+```
+
+ 
+
+**提示：**
+
+- `1 <= n <= 45`
+
+
+
+---
+
+$$
+f(x)=f(x−1)+f(x−2)
+\notag
+$$
+
+```java
+class Solution {
+    public int climbStairs(int n) {
+        int p = 0, q = 0, r = 1;
+        for (int i = 1; i <= n; i++) {
+            p = q;
+            q = r;
+            r = p + q;
+        }
+
+        return r;
+    }
+}
+```
+
+
+
+## 118. 杨辉三角
+
+给定一个非负整数 *`numRows`，*生成「杨辉三角」的前 *`numRows`* 行。
+
+在「杨辉三角」中，每个数是它左上方和右上方的数的和。
+
+![img](assets/1626927345-DZmfxB-PascalTriangleAnimated2.gif)
+
+ 
+
+**示例 1:**
+
+```
+输入: numRows = 5
+输出: [[1],[1,1],[1,2,1],[1,3,3,1],[1,4,6,4,1]]
+```
+
+**示例 2:**
+
+```
+输入: numRows = 1
+输出: [[1]]
+```
+
+ 
+
+**提示:**
+
+- `1 <= numRows <= 30`
+
+
+
+---
+
+```java
+class Solution {
+    public List<List<Integer>> generate(int numRows) {
+        List<List<Integer>> res = new ArrayList<>();
+        for (int i = 0; i < numRows; i++) {
+            List<Integer> row = new ArrayList<>();
+            for (int j = 0; j <= i; j++) {
+                if (j == 0 || j == i) {
+                    row.add(1);
+                } else {
+                    row.add(res.get(i - 1).get(j - 1) + res.get(i - 1).get(j));
+                }
+            }
+
+            res.add(row);
+        }
+
+        return res;
+    }
+}
+```
+
+
+
+## 198. 打家劫舍
+
+你是一个专业的小偷，计划偷窃沿街的房屋。每间房内都藏有一定的现金，影响你偷窃的唯一制约因素就是相邻的房屋装有相互连通的防盗系统，**如果两间相邻的房屋在同一晚上被小偷闯入，系统会自动报警**。
+
+给定一个代表每个房屋存放金额的非负整数数组，计算你 **不触动警报装置的情况下** ，一夜之内能够偷窃到的最高金额。
+
+ 
+
+**示例 1：**
+
+```
+输入：[1,2,3,1]
+输出：4
+解释：偷窃 1 号房屋 (金额 = 1) ，然后偷窃 3 号房屋 (金额 = 3)。
+     偷窃到的最高金额 = 1 + 3 = 4 。
+```
+
+**示例 2：**
+
+```
+输入：[2,7,9,3,1]
+输出：12
+解释：偷窃 1 号房屋 (金额 = 2), 偷窃 3 号房屋 (金额 = 9)，接着偷窃 5 号房屋 (金额 = 1)。
+     偷窃到的最高金额 = 2 + 9 + 1 = 12 。
+```
+
+ 
+
+**提示：**
+
+- `1 <= nums.length <= 100`
+- `0 <= nums[i] <= 400`
+
+
+
+---
+
+```java
+class Solution {
+    public int rob(int[] nums) {
+        int n = nums.length;
+        if (n == 1) return nums[0];
+
+        int[] dp = new int[n];
+        dp[0] = nums[0]; 
+        dp[1] = Math.max(nums[0], nums[1]);
+        for (int i = 2; i < n; i++) {
+            dp[i] = Math.max(dp[i - 2] + nums[i], dp[i - 1]);
+        }
+
+        return dp[n - 1];
+    }
+}
+
+-----------------------------------------------------------------
+// 不使用数组
+class Solution {
+    public int rob(int[] nums) {
+        int n = nums.length;
+        if (n == 1) return nums[0];
+
+        int first = nums[0]; 
+        int second = Math.max(nums[0], nums[1]);
+        for (int i = 2; i < n; i++) {
+            int tmp = second;
+            second = Math.max(first + nums[i], second);
+            first = tmp;
+        }
+
+        return second;
+    }
+}
+```
+
+
+
+## 279. 完全平方数
+
+给你一个整数 `n` ，返回 *和为 `n` 的完全平方数的最少数量* 。
+
+**完全平方数** 是一个整数，其值等于另一个整数的平方；换句话说，其值等于一个整数自乘的积。例如，`1`、`4`、`9` 和 `16` 都是完全平方数，而 `3` 和 `11` 不是。
+
+ 
+
+**示例 1：**
+
+```
+输入：n = 12
+输出：3 
+解释：12 = 4 + 4 + 4
+```
+
+**示例 2：**
+
+```
+输入：n = 13
+输出：2
+解释：13 = 4 + 9
+```
+
+ 
+
+**提示：**
+
+- `1 <= n <= 104`
+
+
+
+---
+
+我们可以依据题目的要求写出状态表达式: $f[i]$ 表示最少需要多少个数的平方来表示整数 $i$
+
+这些数必然落在区间 $[1, \sqrt{i}]$; 我们可以枚举这些数, 假设当前枚举到 $j$, 那么我们还需要取若干数的平方, 构成 $i - j^2$; 此时我们发现该子问题和原问题类似, 只是规模变小了; 这符合了动态规划的要求, 于是我们可以写出状态转移方程
+$$
+f[i] = 1 + \min_{j = 1}^{\lfloor \sqrt{i} \rfloor} f[i - j^2]
+\notag
+$$
+
+```java
+class Solution {
+    public int numSquares(int n) {
+        int[] dp = new int[n + 1];
+        
+        for (int i = 1; i <= n; i++) {
+            int minn = Integer.MAX_VALUE;
+            
+            // 遍历所有可能的完全平方数 j² ≤ i
+            for (int j = 1; j * j <= i; j++) {
+                // 比较所有可能的 dp[i - j²] 值
+                minn = Math.min(minn, dp[i - j * j]);
+            }
+
+            // 状态转移：当前最优解是子问题最优解+1（加上 j² 这个数）
+            dp[i] = minn + 1;
+        }
+
+        return dp[n];
+    }
+}
+```
+
+
+
+## 322. 零钱兑换
+
+给你一个整数数组 `coins` ，表示不同面额的硬币；以及一个整数 `amount` ，表示总金额。
+
+计算并返回可以凑成总金额所需的 **最少的硬币个数** 。如果没有任何一种硬币组合能组成总金额，返回 `-1` 。
+
+你可以认为每种硬币的数量是无限的。
+
+ 
+
+**示例 1：**
+
+```
+输入：coins = [1, 2, 5], amount = 11
+输出：3 
+解释：11 = 5 + 5 + 1
+```
+
+**示例 2：**
+
+```
+输入：coins = [2], amount = 3
+输出：-1
+```
+
+**示例 3：**
+
+```
+输入：coins = [1], amount = 0
+输出：0
+```
+
+ 
+
+**提示：**
+
+- `1 <= coins.length <= 12`
+- `1 <= coins[i] <= 231 - 1`
+- `0 <= amount <= 104`
+
+
+
+---
+
+```java
+class Solution {
+    public int coinChange(int[] coins, int amount) {
+        // 1. 初始化 dp 数组
+        int[] dp = new int[amount + 1];
+        // 初始填充一个不可能的大值（amount+1, 因为最多需要 amount 个1元硬币）
+        Arrays.fill(dp, amount + 1);
+        dp[0] = 0; // 金额0需要0个硬币
+        
+        // 2. 填充dp数组
+        for (int i = 1; i <= amount; i++) {
+            for (int j = 0; j < coins.length; j++) {
+                // 如果当前硬币面值小于等于当前金额
+                if (coins[j] <= i) {
+                    // 状态转移: 比较当前解和使用当前硬币后的解
+                    dp[i] = Math.min(dp[i], dp[i - coins[j]] + 1);
+                }
+            }
+        }
+
+        // 3. 检查是否有解
+        return dp[amount] > amount ? -1 : dp[amount];
+    }
+}
+```
+
